@@ -2,28 +2,7 @@
  * Backend framework for Node.js
  *
  * @description API Router for Koa middleware
- * @author Sasaki, Naoki <nsasaki@sal.co.jp> on October 13, 2018
- *
- * @license under the MIT
- * @copyright (c) 2018-2020 SAL Ltd. - https://sal.co.jp
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * @author Sasaki, Naoki <nsasaki@sal.co.jp>
  */
 
 import { Readable, PassThrough } from 'stream';
@@ -35,7 +14,7 @@ import iconv from 'iconv-lite';
 import JSONStream from 'JSONStream';
 import koaBody from 'koa-body';
 import ArrayStream from './ArrayStream';
-import { APIParam, Argument } from './@types/APIParam';
+import { APIParam, Argument } from '../@types/APIParam';
 
 /**
  * Response body formatter.
@@ -43,16 +22,14 @@ import { APIParam, Argument } from './@types/APIParam';
  * @param apiParam - API parameter definitions
  */
 abstract class AbstractResponseFormatter {
+  // NOTE: constructor has required for type definitions
+  // eslint-disable-next-line no-useless-constructor
   constructor(protected ctx: Context, protected apiParam: APIParam) {}
 
   /**
    * @param data - target data
-   * @returns formatted data
-   * @abstract
    */
-  // protected format(data) {
-  //   return data;
-  // }
+  protected abstract format(data: unknown): unknown;
 }
 
 /**
@@ -65,7 +42,7 @@ class JSONFormatter extends AbstractResponseFormatter {
    * @override
    */
   format(data: unknown): PassThrough | string {
-    const streamStringify = (array) => {
+    const streamStringify = (array: Readable) => {
       return array
         .pipe(JSONStream.stringify('[', ',', ']'))
         .on('error', this.ctx.onerror)
@@ -110,23 +87,26 @@ class ZipFormatter extends AbstractResponseFormatter {
     );
 
     const jsZip = new JSZip();
-    const appendFile = (file) => {
+    const appendFile = (file: Record<string, unknown>) => {
       jsZip.file(
-        file[containFiles.fileNameKey].replace(/[/\\:*?"<>|]/g, '_'),
-        file[containFiles.dataKey],
+        (file[containFiles.fileNameKey] as string).replace(
+          /[/\\:*?"<>|]/g,
+          '_'
+        ),
+        file[containFiles.dataKey] as never,
         {
           binary: true,
-          date: file[containFiles.timeStampKey]
+          date: file[containFiles.timeStampKey] as Date
         }
       );
     };
 
     if (Array.isArray(data)) {
-      data.map((content) => {
+      data.forEach((content) => {
         appendFile(content);
       });
     } else {
-      appendFile(data);
+      appendFile(data as never);
     }
 
     return jsZip
@@ -157,7 +137,7 @@ class RawFormatter extends AbstractResponseFormatter {
    * @override
    */
   format(
-    data: unknown /*Readable | Buffer | string*/
+    data: unknown /* Readable | Buffer | string */
   ): PassThrough | Buffer | string {
     if (data instanceof Readable) {
       return data.on('error', this.ctx.onerror).pipe(new PassThrough());
@@ -176,6 +156,8 @@ class RawFormatter extends AbstractResponseFormatter {
  * @param [opts] - option parameters
  */
 abstract class AbstractHttpMethod {
+  // NOTE: constructor has required for type definitions
+  // eslint-disable-next-line no-useless-constructor
   constructor(
     /* API definitions */
     protected apiParam: APIParam,
@@ -189,12 +171,11 @@ abstract class AbstractHttpMethod {
    * Make a URI string.
    *
    * @returns created URI string
-   * @protected
    */
-  _makeUrl(): string {
+  protected _makeUrl(): string {
     let url = this.apiParam.interface.name;
     if (this.apiParam.interface.args && this.apiParam.interface.args.length) {
-      this.apiParam.interface.args.map((arg, index) => {
+      this.apiParam.interface.args.forEach((arg, index) => {
         const onlyValue =
           arg.subset === false ? false : arg.subset === true || index === 0;
         url += '/' + (onlyValue ? `:${arg.key}` : `${arg.key}/:${arg.key}`);
@@ -208,13 +189,12 @@ abstract class AbstractHttpMethod {
    *
    * @param ctx - koa context
    * @returns values
-   * @protected
    */
-  _makeParams(ctx: Context): (string | number)[] {
+  protected _makeParams(ctx: Context): (string | number)[] {
     const args: (string | number)[] = [];
 
     if (this.apiParam.interface.args) {
-      this.apiParam.interface.args.map((arg) => {
+      this.apiParam.interface.args.forEach((arg) => {
         AbstractHttpMethod._validate(arg, ctx.params[arg.key], false);
         args.push(
           arg.type !== 'number'
@@ -229,8 +209,8 @@ abstract class AbstractHttpMethod {
         ? qs.parse(ctx.url.substring(ctx.url.indexOf('?') + 1))
         : {};
 
-      this.apiParam.interface.options.map((option) => {
-        const array2 = (
+      this.apiParam.interface.options.forEach((option) => {
+        const toString = (
           v: string | string[] | number | undefined
         ): string | number | undefined => {
           return Array.isArray(v) ? v.join(',') : v;
@@ -238,14 +218,14 @@ abstract class AbstractHttpMethod {
 
         AbstractHttpMethod._validate(
           option,
-          array2(optionParams[option.key]),
+          toString(optionParams[option.key]),
           true
         );
 
         const value =
           optionParams[option.key] === undefined && option.default !== undefined
             ? option.default
-            : array2(optionParams[option.key]);
+            : toString(optionParams[option.key]);
 
         if (value !== undefined) {
           args.push(option.type !== 'number' ? value : Number(value));
@@ -254,7 +234,7 @@ abstract class AbstractHttpMethod {
     }
 
     if (this.apiParam.body && this.apiParam.body.params) {
-      this.apiParam.body.params.map((param) => {
+      this.apiParam.body.params.forEach((param) => {
         const value =
           ctx.request.body[param.key] === undefined &&
           param.default !== undefined
@@ -377,13 +357,20 @@ abstract class AbstractHttpMethod {
   async _registerRoute(ctx: Context, next: () => void): Promise<void> {
     try {
       const params = this._makeParams(ctx);
-      const result = await this.apiParam.observer.apply(this, [ctx, ...params]);
+      const options = ctx.url.includes('?')
+        ? qs.parse(ctx.url.substring(ctx.url.indexOf('?') + 1))
+        : {};
+      const result = await this.apiParam.observer.apply(this, [
+        ctx,
+        ...params,
+        options
+      ]);
 
       if (this.apiParam.response && this.apiParam.response.contentType) {
         ctx.response.type = this.apiParam.response.contentType;
       }
 
-      const responseFormatterFactory = (contentType) => {
+      const responseFormatterFactory = (contentType: string) => {
         switch (contentType.toLowerCase()) {
           case 'application/json':
             return new JSONFormatter(ctx, this.apiParam);
@@ -396,18 +383,18 @@ abstract class AbstractHttpMethod {
 
       ctx.body = responseFormatterFactory(ctx.response.type).format(result);
     } catch (err) {
-      ctx.throw(err instanceof TypeError ? 400 : 500, err);
+      ctx.throw(
+        err instanceof TypeError ? 400 : 500,
+        err instanceof Error ? err.message : JSON.stringify(err)
+      );
     }
     return next();
   }
 
   /**
    * Sets a route, must be implemented in extended classes.
-   * @abstract
    */
-  setRoute(): void {
-    // throw new Error('must be implemented in inherited class');
-  }
+  abstract setRoute(): void;
 }
 
 /**
@@ -416,7 +403,7 @@ abstract class AbstractHttpMethod {
 class HttpGet extends AbstractHttpMethod {
   /** @override */
   setRoute(): void {
-    this.router.get(this._makeUrl(), async (ctx, next) => {
+    this.router.get(this._makeUrl(), async (ctx: Context, next: () => void) => {
       await this._registerRoute(ctx, next);
     });
   }
@@ -428,9 +415,13 @@ class HttpGet extends AbstractHttpMethod {
 class HttpPost extends AbstractHttpMethod {
   /** @override */
   setRoute(): void {
-    this.router.post(this._makeUrl(), koaBody(), async (ctx, next) => {
-      await this._registerRoute(ctx, next);
-    });
+    this.router.post(
+      this._makeUrl(),
+      koaBody(),
+      async (ctx: Context, next: () => void) => {
+        await this._registerRoute(ctx, next);
+      }
+    );
   }
 }
 
@@ -440,9 +431,13 @@ class HttpPost extends AbstractHttpMethod {
 class HttpPut extends AbstractHttpMethod {
   /** @override */
   setRoute(): void {
-    this.router.put(this._makeUrl(), koaBody(), async (ctx, next) => {
-      await this._registerRoute(ctx, next);
-    });
+    this.router.put(
+      this._makeUrl(),
+      koaBody(),
+      async (ctx: Context, next: () => void) => {
+        await this._registerRoute(ctx, next);
+      }
+    );
   }
 }
 
@@ -452,9 +447,12 @@ class HttpPut extends AbstractHttpMethod {
 class HttpDelete extends AbstractHttpMethod {
   /** @override */
   setRoute(): void {
-    this.router.delete(this._makeUrl(), async (ctx, next) => {
-      await this._registerRoute(ctx, next);
-    });
+    this.router.delete(
+      this._makeUrl(),
+      async (ctx: Context, next: () => void) => {
+        await this._registerRoute(ctx, next);
+      }
+    );
   }
 }
 
@@ -507,6 +505,7 @@ export abstract class AbstractRoute {
     ) => {
       switch (apiParam.method.toUpperCase()) {
         case 'GET':
+        case 'HEAD':
           return new HttpGet(apiParam, router, opts);
         case 'POST':
           return new HttpPost(apiParam, router, opts);
@@ -515,16 +514,14 @@ export abstract class AbstractRoute {
         case 'DELETE':
           return new HttpDelete(apiParam, router, opts);
         // TODO: to be implemented
-        case 'HEAD':
         case 'PATCH':
         case 'OPTIONS':
-        // eslint-disable-next-line no-fallthrough
         default:
           throw new Error(`Unsupported method '${apiParam.method}'`);
       }
     };
 
-    apiParams.map((apiParam) => {
+    apiParams.forEach((apiParam) => {
       httpMethodFactory(apiParam, this.router, this.opts).setRoute();
     });
   }

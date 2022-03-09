@@ -1,0 +1,10 @@
+.idea/
+src/
+test/
+doc/
+tsconfig.json
+.eslintrc.js
+.prettierignore
+.prettierrc
+.editorconfig
+jest.config.js
