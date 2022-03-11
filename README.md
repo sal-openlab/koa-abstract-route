@@ -4,8 +4,8 @@ API Router for Koa@2 middleware
 
 ## Features
 
-* Easy to define yout custom API route
-* Higher level content types of request/response handling
+* Easy to define your custom API routes
+* Handles higher level content types of request/response
 * Stream friendly
 
 ## Setup
@@ -25,7 +25,7 @@ import { AbstractRoute, APIParam } from 'koa-abstract-route';
 
 export default class MyAPI extends AbstractRoute {
   constructor() {
-    super({ prefix: `/api/v1` });
+    super({ prefix: '/api/v1' });
 
     /*
      * API Parameter definitions.
