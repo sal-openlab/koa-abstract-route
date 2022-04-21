@@ -4,9 +4,9 @@ API Router for Koa@2 middleware
 
 ## Features
 
-* Easy to define your custom API routes
-* Handles higher level content types of request/response
-* Stream friendly
+- Easy to define your custom API routes
+- Handles higher level content types of request/response
+- Stream friendly
 
 ## Setup
 
@@ -18,9 +18,9 @@ $ npm install --save koa-abstract-route
 
 ## Example
 
-* MyAPI.ts
+- MyAPI.ts
 
-```ts
+````ts
 import { AbstractRoute, APIParam } from 'koa-abstract-route';
 
 export default class MyAPI extends AbstractRoute {
@@ -56,15 +56,13 @@ export default class MyAPI extends AbstractRoute {
         response: {
           contentType: 'application/json'
         },
-        observer: (
-          { request, response }, format: string
-        ): object => {
+        observer: ({ request, response }, format: string): object => {
           return {
             timeStamp:
               format === 'epoch' ? Date.now() : new Date().toISOString()
           };
         }
-      },
+      }
     ];
 
     try {
@@ -74,9 +72,9 @@ export default class MyAPI extends AbstractRoute {
     }
   }
 }
-```
+````
 
-* Server.ts
+- Server.ts
 
 ```ts
 import Koa from 'koa';
