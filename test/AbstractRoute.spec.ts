@@ -136,7 +136,7 @@ describe('AbstractRoute', () => {
                   key: 'arg2',
                   type: 'string',
                   validate: {
-                    match: /^ID[0-9]/,
+                    match: /^ID\d/,
                     maxLength: 10
                   }
                 },
@@ -488,7 +488,7 @@ describe('AbstractRoute', () => {
                   key: 'arg2',
                   type: 'string',
                   validate: {
-                    match: /^NO-[0-9]{5}/
+                    match: /^NO-\d{5}/
                   }
                 }
               ]
