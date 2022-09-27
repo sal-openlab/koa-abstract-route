@@ -10,17 +10,18 @@ module.exports = {
   ],
   moduleFileExtensions: ['js', 'ts', 'json'],
   transform: {
-    '^.+\\.ts$': 'ts-jest'
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        diagnostics: {
+          warnOnly: false,
+          pathRegex: /\.(spec|test)\.ts$/
+        }
+      }
+    ]
   },
   collectCoverage: true,
   collectCoverageFrom: ['<rootDir>/src/**/*.{js,ts}'],
   coverageDirectory: '<rootDir>/doc/coverage',
-  globals: {
-    'ts-jest': {
-      diagnostics: {
-        warnOnly: false,
-        pathRegex: /\.(spec|test)\.ts$/
-      }
-    }
-  }
+  globals: {}
 };

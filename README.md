@@ -10,6 +10,8 @@ API Router for Koa@2 middleware
 
 ## Setup
 
+koa-abstract-route requires **Node.js v12** or higher for ES2015 and async function support.
+
 1. Add `koa-abstract-route` dependency to your project
 
 ```sh
@@ -35,7 +37,7 @@ export default class MyAPI extends AbstractRoute {
         /* Gets current server time.
          * @example
          * ```sh
-         * curl -i http://127.0.0.1/api/v1/time
+         * $ curl -i http://127.0.0.1/api/v1/time
          * ```
          */
         method: 'GET',

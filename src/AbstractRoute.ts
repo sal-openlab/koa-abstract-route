@@ -11,7 +11,7 @@ import { Context } from 'koa';
 import Router from '@koa/router';
 import JSZip from 'jszip';
 import iconv from 'iconv-lite';
-import JSONStream from 'JSONStream';
+import JSONStream from 'jsonstream-ts';
 import koaBody from 'koa-body';
 import ArrayStream from './ArrayStream';
 import { APIParam, Argument } from '../@types/APIParam';
@@ -44,7 +44,7 @@ class JSONFormatter extends AbstractResponseFormatter {
   format(data: unknown): PassThrough | string {
     const streamStringify = (array: Readable) => {
       return array
-        .pipe(JSONStream.stringify('[', ',', ']'))
+        .pipe(JSONStream.stringify('[', ',', ']', ''))
         .on('error', this.ctx.onerror)
         .pipe(new PassThrough());
     };
