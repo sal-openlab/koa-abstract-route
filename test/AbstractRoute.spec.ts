@@ -968,50 +968,6 @@ describe('AbstractRoute', () => {
     });
   });
 
-  describe('abnormally types', () => {
-    class Route extends AbstractRoute {
-      constructor() {
-        super({ prefix: apiPrefix });
-
-        const apiParams: APIParam[] = [
-          {
-            method: 'GET',
-            interface: {
-              name: 'api1',
-              args: [
-                {
-                  key: 'id',
-                  type: 'foo' // Boo!
-                }
-              ]
-            },
-            observer: async (ctx, id) => {
-              return `id: ${id}`;
-            }
-          }
-        ];
-
-        this.routeAdd(apiParams);
-      }
-    }
-
-    const app = new Koa();
-    const route = new Route();
-    app.use(route.router.routes());
-
-    test('abnormally parameter type', async () => {
-      const id = 123;
-      const uri = `${apiPrefix}/api1/${id}`;
-
-      const response = await request(app.callback()).get(uri);
-
-      expect(response.status).toBe(400);
-      expect(response.text).toBe(
-        "Unrecognized type 'foo'. type must be 'string' or 'number'."
-      );
-    });
-  });
-
   describe('abnormally regex type', () => {
     class Route extends AbstractRoute {
       constructor() {
@@ -1377,6 +1333,210 @@ describe('AbstractRoute', () => {
         id,
         options: [option1, 'Value2']
       });
+    });
+  });
+
+  describe('arg type of boolean', () => {
+    class Route extends AbstractRoute {
+      constructor() {
+        super({ prefix: apiPrefix });
+
+        const apiParams: APIParam[] = [
+          {
+            method: 'GET',
+            interface: {
+              name: 'api1',
+              args: [
+                {
+                  key: 'arg',
+                  type: 'boolean'
+                }
+              ]
+            },
+            response: {
+              contentType: 'application/json'
+            },
+            observer: async (ctx, arg) => {
+              return { value: arg };
+            }
+          },
+          {
+            method: 'GET',
+            interface: {
+              name: 'api2',
+              args: [
+                {
+                  key: 'id',
+                  type: 'number'
+                },
+                {
+                  key: 'arg1',
+                  type: 'boolean'
+                }
+              ]
+            },
+            response: {
+              contentType: 'application/json'
+            },
+            observer: async (ctx, id, arg1) => {
+              return { id, value: arg1 };
+            }
+          },
+          {
+            method: 'GET',
+            interface: {
+              name: 'api3',
+              args: [
+                {
+                  key: 'id',
+                  type: 'number'
+                }
+              ],
+              options: [
+                {
+                  key: 'option1',
+                  type: 'boolean',
+                  required: true
+                }
+              ]
+            },
+            response: {
+              contentType: 'application/json'
+            },
+            observer: async (ctx, id, option1) => {
+              return { id, value: option1 };
+            }
+          },
+          {
+            method: 'GET',
+            interface: {
+              name: 'api4',
+              args: [
+                {
+                  key: 'id',
+                  type: 'number'
+                }
+              ],
+              options: [
+                {
+                  key: 'option1',
+                  type: 'boolean',
+                  default: true
+                }
+              ]
+            },
+            response: {
+              contentType: 'application/json'
+            },
+            observer: async (ctx, id, option1) => {
+              return { id, value: option1 };
+            }
+          },
+          {
+            method: 'GET',
+            interface: {
+              name: 'api5',
+              args: [
+                {
+                  key: 'id',
+                  type: 'number'
+                },
+                {
+                  key: 'arg1',
+                  type: 'boolean'
+                }
+              ]
+            },
+            response: {
+              contentType: 'application/json'
+            },
+            observer: async (ctx, id, arg1) => {
+              return { id, value: arg1 };
+            }
+          }
+        ];
+
+        this.routeAdd(apiParams);
+      }
+    }
+
+    const app = new Koa();
+    const route = new Route();
+    app.use(route.router.routes());
+
+    test('normally parameter, url parameter', async () => {
+      const arg = true;
+      const uri = `${apiPrefix}/api1/${arg}`;
+
+      const response = await request(app.callback()).get(uri);
+
+      expect(response.status).toBe(200);
+      expect(response.type).toBe('application/json');
+      expect(response.body).toEqual({
+        value: arg
+      });
+    });
+
+    test('normally parameter, 2nd url parameter', async () => {
+      const id = 123;
+      const arg1 = false;
+      const uri = `${apiPrefix}/api2/${id}/arg1/${arg1}`;
+
+      const response = await request(app.callback()).get(uri);
+
+      expect(response.status).toBe(200);
+      expect(response.type).toBe('application/json');
+      expect(response.body).toEqual({
+        id,
+        value: arg1
+      });
+    });
+
+    test('normally parameter, option parameter', async () => {
+      const id = 123;
+      const option1 = true;
+      const uri = `${apiPrefix}/api3/${id}?option1=${option1}`;
+
+      const response = await request(app.callback()).get(uri);
+
+      expect(response.status).toBe(200);
+      expect(response.type).toBe('application/json');
+      expect(response.body).toEqual({
+        id,
+        value: option1
+      });
+    });
+
+    test('abnormally parameter, required option parameter', async () => {
+      const id = 123;
+      const uri = `${apiPrefix}/api3/${id}`;
+
+      const response = await request(app.callback()).get(uri);
+
+      expect(response.status).toBe(400);
+    });
+
+    test('normally parameter, default option parameter', async () => {
+      const id = 123;
+      const uri = `${apiPrefix}/api4/${id}`;
+
+      const response = await request(app.callback()).get(uri);
+
+      expect(response.status).toBe(200);
+      expect(response.type).toBe('application/json');
+      expect(response.body).toEqual({
+        id,
+        value: true
+      });
+    });
+
+    test('abnormally parameter, invalid value', async () => {
+      const id = 123;
+      const uri = `${apiPrefix}/api5/${id}/arg1/foo`;
+
+      const response = await request(app.callback()).get(uri);
+
+      expect(response.status).toBe(400);
     });
   });
 });

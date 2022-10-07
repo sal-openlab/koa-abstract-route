@@ -6,7 +6,6 @@
  */
 
 import { Readable, PassThrough } from 'stream';
-import qs from 'querystring';
 import { Context } from 'koa';
 import Router from '@koa/router';
 import JSZip from 'jszip';
@@ -190,29 +189,29 @@ abstract class AbstractHttpMethod {
    * @param ctx - koa context
    * @returns values
    */
-  protected _makeParams(ctx: Context): (string | number)[] {
-    const args: (string | number)[] = [];
+  protected _makeParams(ctx: Context): (string | number | boolean)[] {
+    const args: (string | number | boolean)[] = [];
 
     if (this.apiParam.interface.args) {
       this.apiParam.interface.args.forEach((arg) => {
         AbstractHttpMethod._validate(arg, ctx.params[arg.key], false);
         args.push(
-          arg.type !== 'number'
-            ? ctx.params[arg.key]
-            : Number(ctx.params[arg.key])
+          arg.type === 'number'
+            ? Number(ctx.params[arg.key])
+            : arg.type === 'boolean'
+            ? ctx.params[arg.key].toLowerCase() === 'true'
+            : ctx.params[arg.key]
         );
       });
     }
 
     if (this.apiParam.interface.options) {
-      const optionParams = ctx.url.includes('?')
-        ? qs.parse(ctx.url.substring(ctx.url.indexOf('?') + 1))
-        : {};
+      const optionParams = this.parseQueryParams(ctx.url);
 
       this.apiParam.interface.options.forEach((option) => {
         const toString = (
-          v: string | string[] | number | undefined
-        ): string | number | undefined => {
+          v: string | string[] | number | boolean | undefined
+        ): string | number | boolean | undefined => {
           return Array.isArray(v) ? v.join(',') : v;
         };
 
@@ -228,7 +227,13 @@ abstract class AbstractHttpMethod {
             : toString(optionParams[option.key]);
 
         if (value !== undefined) {
-          args.push(option.type !== 'number' ? value : Number(value));
+          args.push(
+            option.type === 'number'
+              ? Number(value)
+              : option.type === 'boolean' && typeof value === 'string'
+              ? (value as string).toLowerCase() === 'true'
+              : value
+          );
         }
       });
     }
@@ -253,19 +258,18 @@ abstract class AbstractHttpMethod {
    *
    * @param param - URL arguments and options or request body parameters
    * @param values - parameter value
-   * @param isOmissible - can be omitted parameter
+   * @param canOmit - can be omitted parameter
    * @throws parameter validation error
-   * @private
    * @static
    */
-  static _validate(
+  private static _validate(
     param: Argument,
-    values: string | number | undefined,
-    isOmissible: boolean
+    values: string | number | boolean | undefined,
+    canOmit: boolean
   ): void {
     const value = Array.isArray(values) ? values.join(',') : values;
 
-    if (isOmissible && value === undefined) {
+    if (canOmit && value === undefined) {
       if (param.required) throw new TypeError(`'${param.key}' is not defined.`);
       return;
     }
@@ -340,26 +344,54 @@ abstract class AbstractHttpMethod {
         }
         break;
       }
+      case 'boolean': {
+        if (
+          typeof value === 'boolean' ||
+          (typeof value === 'string' &&
+            (value.toLowerCase() === 'true' || value.toLowerCase() === 'false'))
+        ) {
+          break;
+        }
+        throw new TypeError(`'${param.key}' must be 'true' or 'false'.`);
+      }
       default: {
+        // NOTE: will not be reached because type guarded
         throw new TypeError(
-          `Unrecognized type '${param.type}'. type must be 'string' or 'number'.`
+          `Unrecognized type '${param.type}'. type must be 'string', 'number' and 'boolean'.`
         );
       }
     }
   }
 
   /**
+   * Parses query parameters.
+   * @param url - URL includes or not includes query parameters
+   * @returns parsed query parameters
+   */
+  private parseQueryParams(url: string): Record<string, string> {
+    const result: Record<string, string> = {};
+
+    if (url.includes('?')) {
+      const params = new URLSearchParams(url.substring(url.indexOf('?') + 1));
+      for (const [key, value] of params.entries())
+        Object.assign(result, { [key]: value });
+    }
+
+    return result;
+  }
+
+  /**
    * Register a single route.
    * @param ctx - koa context
    * @param next - koa next()
-   * @protected
    */
-  async _registerRoute(ctx: Context, next: () => void): Promise<void> {
+  protected async _registerRoute(
+    ctx: Context,
+    next: () => void
+  ): Promise<void> {
     try {
       const params = this._makeParams(ctx);
-      const options = ctx.url.includes('?')
-        ? qs.parse(ctx.url.substring(ctx.url.indexOf('?') + 1))
-        : {};
+      const options = this.parseQueryParams(ctx.url);
       const result = await this.apiParam.observer.apply(this, [
         ctx,
         ...params,

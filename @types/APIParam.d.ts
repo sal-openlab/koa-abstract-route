@@ -36,20 +36,20 @@ export type Options = {
   /** identifier */
   key: string;
   /** type of parameter */
-  type: string;
+  type: 'string' | 'number' | 'boolean';
   /** must be defined this parameter */
   required?: boolean;
   /** validation patterns */
   validate?: Validate;
   /** default value (validator disable if default is defined) */
-  default?: string | number;
+  default?: string | number | boolean;
 };
 
 export type Argument = {
   /** identifier */
   key: string;
   /** type of parameter */
-  type: string;
+  type: 'string' | 'number' | 'boolean';
   /** must be defined this parameter */
   required?: boolean;
   /** value only parameter */
@@ -57,7 +57,7 @@ export type Argument = {
   /** validation patterns */
   validate?: Validate;
   /** default value (validator disable if default is defined) */
-  default?: string | number;
+  default?: string | number | boolean;
 };
 
 export type Interface = {

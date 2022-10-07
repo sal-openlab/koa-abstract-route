@@ -1,6 +1,6 @@
 {
   "name": "koa-abstract-route",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "API Router for Koa middleware",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
