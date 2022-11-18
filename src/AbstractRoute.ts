@@ -15,6 +15,23 @@ import koaBody from 'koa-body';
 import ArrayStream from './ArrayStream';
 import { APIParam, Argument } from '../@types/APIParam';
 
+type BodyMiddlewareOptions = {
+  json?: boolean;
+  encoding?: string;
+  multipart?: boolean;
+  patchNode?: boolean;
+  patchKoa?: boolean;
+  jsonLimit?: string | number;
+  formLimit?: string | number;
+  textLimit?: string | number;
+  urlencoded?: boolean;
+  text?: boolean;
+  jsonStrict?: boolean;
+  includeUnparsed?: boolean;
+};
+
+type RouteOptions = { prefix: string; body: BodyMiddlewareOptions };
+
 /**
  * Response body formatter.
  * @param ctx - Koa context instance
@@ -162,8 +179,8 @@ abstract class AbstractHttpMethod {
     protected apiParam: APIParam,
     /* Router instance */
     protected router: Router,
-    /* option parameters */
-    protected opts = {}
+    /* option parameters for koa-router, koa-body */
+    protected opts: RouteOptions
   ) {}
 
   /**
@@ -449,7 +466,7 @@ class HttpPost extends AbstractHttpMethod {
   setRoute(): void {
     this.router.post(
       this._makeUrl(),
-      koaBody(),
+      koaBody(this.opts.body),
       async (ctx: Context, next: () => void) => {
         await this._registerRoute(ctx, next);
       }
@@ -465,7 +482,7 @@ class HttpPut extends AbstractHttpMethod {
   setRoute(): void {
     this.router.put(
       this._makeUrl(),
-      koaBody(),
+      koaBody(this.opts.body),
       async (ctx: Context, next: () => void) => {
         await this._registerRoute(ctx, next);
       }
@@ -491,7 +508,7 @@ class HttpDelete extends AbstractHttpMethod {
 /**
  * AbstractRoute - Route definition for Koa middleware.
  *
- * @param [opts] - options
+ * @param opts - options
  * @example
  * class ContentRoute extends AbstractRoute {
  *   constructor() {
@@ -500,17 +517,20 @@ class HttpDelete extends AbstractHttpMethod {
  * }
  */
 export abstract class AbstractRoute {
-  /** option parameters for koa-router */
-  protected opts: { prefix: string };
+  /** option parameters for koa-router, koa-body */
+  protected opts: RouteOptions;
   /** koa-router instance */
   public router: Router;
 
-  protected constructor(opts = {}) {
-    this.opts = Object.assign({ prefix: '' }, opts);
+  protected constructor(
+    opts: { prefix?: string; body?: BodyMiddlewareOptions } = {}
+  ) {
+    this.opts = {
+      prefix: opts.prefix || '',
+      body: opts.body || ({} as BodyMiddlewareOptions)
+    };
 
-    if (this.opts.prefix && !this.opts.prefix.endsWith('/'))
-      this.opts.prefix += '/';
-
+    if (!this.opts.prefix.endsWith('/')) this.opts.prefix += '/';
     this.router = new Router(this.opts);
   }
 
@@ -526,14 +546,14 @@ export abstract class AbstractRoute {
      * HTTP method instance factory
      * @param apiParam - API parameters
      * @param router - router instance
-     * @param [opts] - option parameters
+     * @param opts - option parameters for koa-router, koa-body
      * @return created instance
      * @throws unknown method error
      */
     const httpMethodFactory = (
       apiParam: APIParam,
       router: Router,
-      opts = {}
+      opts: RouteOptions
     ) => {
       switch (apiParam.method.toUpperCase()) {
         case 'GET':

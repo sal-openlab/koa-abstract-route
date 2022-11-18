@@ -1539,4 +1539,103 @@ describe('AbstractRoute', () => {
       expect(response.status).toBe(400);
     });
   });
+
+  describe('koa-body options, not change jsonLimit by default 1mb', () => {
+    class Route extends AbstractRoute {
+      constructor() {
+        super({ prefix: apiPrefix });
+
+        const apiParams: APIParam[] = [
+          {
+            method: 'POST',
+            interface: {
+              name: 'api1',
+              args: [
+                {
+                  key: 'id',
+                  type: 'number'
+                }
+              ]
+            },
+            response: {
+              contentType: 'application/json'
+            },
+            observer: async ({ request }, id) => {
+              return { id, result: request.body };
+            }
+          }
+        ];
+
+        this.routeAdd(apiParams);
+      }
+    }
+
+    const app = new Koa();
+    const route = new Route();
+    app.use(route.router.routes());
+
+    test('abnormally parameter, body size over 1mb', async () => {
+      const id = 123;
+      const uri = `${apiPrefix}/api1/${id}`;
+      const data = {
+        value: '0'.repeat(1024 * 10000) // 10mb
+      };
+
+      const response = await request(app.callback()).post(uri).send(data);
+
+      expect(response.status).toBe(413); // Request Entity Too Large
+    });
+  });
+
+  describe('koa-body options, change jsonLimit to 10mb', () => {
+    class Route extends AbstractRoute {
+      constructor() {
+        super({
+          prefix: apiPrefix,
+          body: {
+            jsonLimit: '10mb' // default `1mb`. see more information https://www.npmjs.com/package/koa-body
+          }
+        });
+
+        const apiParams: APIParam[] = [
+          {
+            method: 'POST',
+            interface: {
+              name: 'api1',
+              args: [
+                {
+                  key: 'id',
+                  type: 'number'
+                }
+              ]
+            },
+            response: {
+              contentType: 'application/json'
+            },
+            observer: async ({ request }, id) => {
+              return { id, result: request.body };
+            }
+          }
+        ];
+
+        this.routeAdd(apiParams);
+      }
+    }
+
+    const app = new Koa();
+    const route = new Route();
+    app.use(route.router.routes());
+
+    test('normally parameter, body size over 1mb', async () => {
+      const id = 123;
+      const uri = `${apiPrefix}/api1/${id}`;
+      const data = {
+        value: '0'.repeat(1024 * 10000) // 10mb
+      };
+
+      const response = await request(app.callback()).post(uri).send(data);
+
+      expect(response.status).toBe(200);
+    });
+  });
 });
