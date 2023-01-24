@@ -1578,7 +1578,7 @@ describe('AbstractRoute', () => {
       const id = 123;
       const uri = `${apiPrefix}/api1/${id}`;
       const data = {
-        value: '0'.repeat(1024 * 10000) // 10mb
+        value: '0'.repeat(1024 * 2000) // 2mb
       };
 
       const response = await request(app.callback()).post(uri).send(data);
