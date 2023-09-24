@@ -40,7 +40,10 @@ type RouteOptions = { prefix: string; body: BodyMiddlewareOptions };
 abstract class AbstractResponseFormatter {
   // NOTE: constructor has required for type definitions
   // eslint-disable-next-line no-useless-constructor
-  constructor(protected ctx: Context, protected apiParam: APIParam) {}
+  constructor(
+    protected ctx: Context,
+    protected apiParam: APIParam
+  ) {}
 
   /**
    * @param data - target data
