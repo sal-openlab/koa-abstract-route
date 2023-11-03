@@ -10,3 +10,4 @@ export {
   ZipContainer,
   Body
 } from '../@types/APIParam';
+export { Cookies } from '../@types/Cookies';
