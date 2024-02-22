@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/koa-abstract-route?logo=npm&color=blue)](https://www.npmjs.com/package/koa-abstract-route)
 [![license](https://img.shields.io/npm/l/koa-abstract-route?color=blue)](./LICENSE)
-[![build](https://img.shields.io/github/actions/workflow/status/sal-openlab/koa-abstract-route/ci.yml?logo=github)](https://github.com/sal-openlab/datafusion-server/actions?query=workflow%3Apush-trigger)
+[![build](https://img.shields.io/github/actions/workflow/status/sal-openlab/koa-abstract-route/ci.yml?logo=github)](https://github.com/sal-openlab/koa-abstract-route/actions?query=workflow%3Aci)
 [![codecov](https://codecov.io/gh/sal-openlab/koa-abstract-route/graph/badge.svg?token=QKSZ9GSOP6)](https://codecov.io/gh/sal-openlab/koa-abstract-route)
 
 API Router for Koa@2 middleware
