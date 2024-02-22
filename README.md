@@ -1,5 +1,9 @@
 # [koa-abstract-route](https://www.npmjs.com/package/koa-abstract-route)
 
+[![npm](https://img.shields.io/npm/v/koa-abstract-route?logo=npm&color=blue)](https://www.npmjs.com/package/koa-abstract-route)
+[![license](https://img.shields.io/npm/l/koa-abstract-route?color=blue)](./LICENSE)
+[![codecov](https://codecov.io/gh/sal-openlab/koa-abstract-route/graph/badge.svg?token=QKSZ9GSOP6)](https://codecov.io/gh/sal-openlab/koa-abstract-route)
+
 API Router for Koa@2 middleware
 
 ## Features

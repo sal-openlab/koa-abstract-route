@@ -219,8 +219,8 @@ abstract class AbstractHttpMethod {
           arg.type === 'number'
             ? Number(ctx.params[arg.key])
             : arg.type === 'boolean'
-            ? ctx.params[arg.key].toLowerCase() === 'true'
-            : ctx.params[arg.key]
+              ? ctx.params[arg.key].toLowerCase() === 'true'
+              : ctx.params[arg.key]
         );
       });
     }
@@ -251,8 +251,8 @@ abstract class AbstractHttpMethod {
             option.type === 'number'
               ? Number(value)
               : option.type === 'boolean' && typeof value === 'string'
-              ? (value as string).toLowerCase() === 'true'
-              : value
+                ? (value as string).toLowerCase() === 'true'
+                : value
           );
         }
       });
