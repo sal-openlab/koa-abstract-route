@@ -24,6 +24,7 @@ jobs:
 
       - name: Builds and Coverages
         run: |
+          npm install
           npm run lint
           npm run build
           npm test -- --coverage
