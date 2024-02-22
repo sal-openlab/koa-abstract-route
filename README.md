@@ -2,6 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/koa-abstract-route?logo=npm&color=blue)](https://www.npmjs.com/package/koa-abstract-route)
 [![license](https://img.shields.io/npm/l/koa-abstract-route?color=blue)](./LICENSE)
+[![build](https://img.shields.io/github/actions/workflow/status/sal-openlab/koa-abstract-route/ci.yml?logo=github)](https://github.com/sal-openlab/datafusion-server/actions?query=workflow%3Apush-trigger)
 [![codecov](https://codecov.io/gh/sal-openlab/koa-abstract-route/graph/badge.svg?token=QKSZ9GSOP6)](https://codecov.io/gh/sal-openlab/koa-abstract-route)
 
 API Router for Koa@2 middleware
@@ -14,7 +15,7 @@ API Router for Koa@2 middleware
 
 ## Setup
 
-koa-abstract-route requires **Node.js v12** or higher for ES2015 and async function support.
+koa-abstract-route requires **Node.js v16** or higher for ES2015 and async function support.
 
 1. Add `koa-abstract-route` dependency to your project
 
