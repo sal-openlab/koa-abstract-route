@@ -376,9 +376,6 @@ abstract class AbstractHttpMethod {
       }
       default: {
         // NOTE: will not be reached because type guarded
-        throw new TypeError(
-          `Unrecognized type '${param.type}'. type must be 'string', 'number' and 'boolean'.`
-        );
       }
     }
   }
