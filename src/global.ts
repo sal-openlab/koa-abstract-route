@@ -2,8 +2,8 @@ import 'koa';
 
 declare module 'koa' {
   interface Request {
-    body?: unknown;
-    files?: unknown;
+    body?: never;
+    files?: never;
     rawBody?: string;
   }
 }

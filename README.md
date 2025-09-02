@@ -5,7 +5,7 @@
 [![build](https://img.shields.io/github/actions/workflow/status/sal-openlab/koa-abstract-route/ci.yml?logo=github)](https://github.com/sal-openlab/koa-abstract-route/actions?query=workflow%3Aci)
 [![codecov](https://codecov.io/gh/sal-openlab/koa-abstract-route/graph/badge.svg?token=QKSZ9GSOP6)](https://codecov.io/gh/sal-openlab/koa-abstract-route)
 
-API Router for Koa@2 middleware
+API Router for Koa@3 middleware
 
 ## Features
 
