@@ -15,7 +15,7 @@ API Router for Koa@2 middleware
 
 ## Setup
 
-koa-abstract-route requires **Node.js v16** or higher for ES2015 and async function support.
+koa-abstract-route requires **Node.js v18** or higher for ES2015 and async function support.
 
 1. Add `koa-abstract-route` dependency to your project
 

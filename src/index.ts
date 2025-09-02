@@ -1,3 +1,4 @@
+import './global';
 export * from './AbstractRoute';
 export {
   APIParam,

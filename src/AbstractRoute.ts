@@ -11,7 +11,7 @@ import Router from '@koa/router';
 import JSZip from 'jszip';
 import iconv from 'iconv-lite';
 import JSONStream from 'jsonstream-ts';
-import koaBody from 'koa-body';
+import { koaBody } from 'koa-body';
 import ArrayStream from './ArrayStream';
 import { APIParam, Argument } from '../@types/APIParam';
 
@@ -61,6 +61,8 @@ class JSONFormatter extends AbstractResponseFormatter {
    * @override
    */
   format(data: unknown): PassThrough | string {
+    if (data === null || data === undefined) return '';
+
     const streamStringify = (array: Readable) => {
       return array
         .pipe(JSONStream.stringify('[', ',', ']', ''))
@@ -259,14 +261,25 @@ abstract class AbstractHttpMethod {
     }
 
     if (this.apiParam.body && this.apiParam.body.params) {
+      const reqBody =
+        (ctx.request as unknown as { body?: Record<string, unknown> }).body ??
+        {};
+
       this.apiParam.body.params.forEach((param) => {
         const value =
-          ctx.request.body[param.key] === undefined &&
-          param.default !== undefined
+          reqBody[param.key] === undefined && param.default !== undefined
             ? param.default
-            : ctx.request.body[param.key];
-        AbstractHttpMethod._validate(param, value, true);
-        args.push(value);
+            : reqBody[param.key];
+
+        if (
+          value === undefined ||
+          typeof value === 'string' ||
+          typeof value === 'number' ||
+          typeof value === 'boolean'
+        ) {
+          AbstractHttpMethod._validate(param, value, true);
+          if (value) args.push(value);
+        }
       });
     }
 

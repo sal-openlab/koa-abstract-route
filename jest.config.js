@@ -8,7 +8,7 @@ module.exports = {
     '<rootDir>/.eslintrc.js',
     '<rootDir>/test/.eslintrc.js'
   ],
-  moduleFileExtensions: ['js', 'ts', 'json'],
+  moduleFileExtensions: ['js', 'ts', 'd.ts', 'json'],
   transform: {
     '^.+\\.ts$': [
       'ts-jest',

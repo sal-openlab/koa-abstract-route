@@ -351,7 +351,7 @@ describe('AbstractRoute', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
         id,
-        values: [data.param1, data.param2, data.param3, null]
+        values: [data.param1, data.param2, data.param3, {}]
       });
     });
 
@@ -383,7 +383,7 @@ describe('AbstractRoute', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual({
         id,
-        values: [data.param1, 'Default Value', data.param3, null]
+        values: [data.param1, 'Default Value', data.param3, {}]
       });
     });
 
