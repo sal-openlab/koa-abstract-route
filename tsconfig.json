@@ -106,6 +106,6 @@
       "@types/supertest"
     ]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "include": ["src/**/*.ts", "@types/**/*.d.ts"],
   "exclude": ["test/**/*.spec.ts"]
 }
